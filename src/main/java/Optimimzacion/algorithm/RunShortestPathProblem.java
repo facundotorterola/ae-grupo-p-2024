@@ -17,8 +17,8 @@ public class RunShortestPathProblem {
     public static void main(String[] args) {
         // Definir el grafo
         int[][] adjacencyMatrix = {
-                {0, 10, 15, 20},
-                {10, 0, 35, 25},
+                {0, 100, 15, 20},
+                {100, 0, 35, 25},
                 {15, 35, 0, 30},
                 {20, 25, 30, 0}
         };
@@ -43,16 +43,20 @@ public class RunShortestPathProblem {
 
         // Mostrar resultados
         List<PermutationSolution<Integer>> population = (List<PermutationSolution<Integer>>) algorithm.getResult();
+        PermutationSolution<Integer> bestSolution = population.get(0);
         for (PermutationSolution<Integer> solution : population) {
-            System.out.println("====================================");
-            System.out.print("Solution: [ ");
-            for (int i = 0; i < solution.getNumberOfVariables(); i++) {
-                System.out.print(solution.getVariableValue(i) + " ");
+            if (solution.getObjective(0) < bestSolution.getObjective(0)) {
+                bestSolution = solution;
             }
-            System.out.println("]");
-            System.out.println("Total Distance: " + solution.getObjective(0));
-            System.out.println("====================================");
 
         }
+            System.out.println("====================================");
+            System.out.print("Solution: [ ");
+            for (int i = 0; i < bestSolution.getNumberOfVariables(); i++) {
+                System.out.print(bestSolution.getVariableValue(i) + " ");
+            }
+            System.out.println("]");
+            System.out.println("Total Distance: " + bestSolution.getObjective(0));
+            System.out.println("====================================");
     }
 }
