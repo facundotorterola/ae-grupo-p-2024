@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LeerCSV {
-    public static Map<Integer, Contenedor> getContenedores() {
-        String rutaCSV = "src/main/resources/levantes-contenedores.csv";
+    public static Map<Integer, Contenedor> getContenedores(int cantidadContenedores) {
+        String rutaCSV = "src/main/resources/pruebaContenedores.csv";
         // Mapa para almacenar los contenedores
         Map<Integer, Contenedor> contenedores = new HashMap<>();
 
@@ -23,13 +23,18 @@ public class LeerCSV {
             int counter = 0;
             // Leer cada línea del archivo
             while ((linea = reader.readNext()) != null) {
-                double latitud = Double.parseDouble(linea[4]);
-                double longitud = Double.parseDouble(linea[5]);
+                int id = Integer.parseInt(linea[0]);
+                double latitud = Double.parseDouble(linea[1]);
+                double longitud = Double.parseDouble(linea[2]);
+                int demanda = Integer.parseInt(linea[3]);
 
                 // Crear y almacenar el contenedor
-                Contenedor contenedor = new Contenedor(counter, latitud, longitud);
+                Contenedor contenedor = new Contenedor(id, latitud, longitud, demanda);
                 contenedores.put(counter, contenedor);
                 counter++;
+                if (counter == cantidadContenedores) {
+                    break;
+                }
             }
         } catch (IOException | CsvValidationException e) {
             e.printStackTrace();

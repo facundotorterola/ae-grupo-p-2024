@@ -15,7 +15,7 @@ public class GrafoContenedores {
     private Map<Integer, Contenedor> contenedores;
 
     public GrafoContenedores(Map<Integer,Contenedor> contenedores){
-        int CANTIDAD_DE_CONEXIONES = 100;
+        int CANTIDAD_DE_CONEXIONES = 5;
         this.contenedores = contenedores;
         // Crear el grafo
         DefaultUndirectedWeightedGraph<Integer, DefaultWeightedEdge> grafo =
@@ -81,9 +81,9 @@ public class GrafoContenedores {
         DijkstraShortestPath<Integer, DefaultWeightedEdge> dijkstra = new DijkstraShortestPath<>(this.grafo);
 //        System.out.println("FROM: " + from + " TO: " + to + " PESO: " + dijkstra.getPathWeight(from, to));
         double distance = dijkstra.getPathWeight(from, to);
-        if (distance == Double.POSITIVE_INFINITY) {
-            throw new IllegalArgumentException("No hay camino entre los nodos.");
-        }
+//        if (distance == Double.POSITIVE_INFINITY) {
+//            throw new IllegalArgumentException("No hay camino entre los nodos.");
+//        }
         return distance;
     }
 
@@ -101,7 +101,7 @@ public class GrafoContenedores {
 
     public static void main(String[] args) {
         // Crear contenedores
-        Map<Integer, Contenedor> contenedores = LeerCSV.getContenedores();
+        Map<Integer, Contenedor> contenedores = LeerCSV.getContenedores(0);
 //        contenedores.put(1, new Contenedor(1, -34.87333, -56.24022));
 //        contenedores.put(2, new Contenedor(2, -34.87412, -56.23973));
 //        contenedores.put(3, new Contenedor(3, -34.875416, -56.239506));
