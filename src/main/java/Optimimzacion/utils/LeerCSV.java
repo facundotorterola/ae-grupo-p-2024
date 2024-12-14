@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class LeerCSV {
     public static Map<Integer, Contenedor> getContenedores(int cantidadContenedores) {
-        String rutaCSV = "src/main/resources/contenedoresFiltrados.csv";
+        String rutaCSV = "src/main/resources/contenedoresPorMunicipio.csv";
         // Mapa para almacenar los contenedores
         Map<Integer, Contenedor> contenedores = new HashMap<>();
 
