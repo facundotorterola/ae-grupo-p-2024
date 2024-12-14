@@ -63,8 +63,7 @@ public class RunShortestPathContenedoresMultProblem {
                             int id = combinacionId.incrementAndGet();
 
                             System.out.println("Ejecutando combinación " + id + " con parámetros:");
-                            System.out.println("Población: " + poblacion + ", Generaciones: " + generacion +
-                                    ", Greedy: " + greedy + ", Cruce: " + cruce + ", Mutación: " + mutacion);
+
 
                             // Configurar el problema
                             ShortestPathMultCamionesProblem problem = new ShortestPathMultCamionesProblem(camiones, contenedores, greedy);
@@ -89,6 +88,11 @@ public class RunShortestPathContenedoresMultProblem {
                                     .orElseThrow();
 
                             double distanciaMejorSolucion = mejorSolucionParametro.getObjective(0);
+                            System.out.println("Población: " + poblacion + ", Generaciones: " + generacion +
+                                    ", Greedy: " + greedy + ", Cruce: " + cruce + ", Mutación: " + mutacion  +", Fitness: " + distanciaMejorSolucion);
+                            System.out.println("====================================");
+                            System.out.println(mejorSolucionParametro);
+                            System.out.println("====================================");
 
                             // Guardar los resultados en el archivo CSV
                             synchronized (csvWriter) {

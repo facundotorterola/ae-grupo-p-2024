@@ -33,7 +33,7 @@ public class ShortestPathMultCamionesProblem extends AbstractIntegerPermutationP
     public void evaluate(PermutationSolution<Integer> solution) {
         double totalDistance = 0;
         double demandaScore = 0;
-        double alpha = 1.0/(cantidadContenedores*camiones.size());
+        double alpha = 1.0/(camiones.size());
         double beta = 1.0 / camiones.size();
 
         // Crear copias temporales de los camiones
@@ -57,9 +57,12 @@ public class ShortestPathMultCamionesProblem extends AbstractIntegerPermutationP
             // Actualizar el estado del camión
             camion.getContenedores().add(contenedor);
             camion.setContenedorActual(contenedor);
-
+            camion.setCapacidadUtilizada(camion.getCapacidadUtilizada() + contenedor.getDemanda());
+            if (camion.getCapacidadUtilizada() > camion.getCapacidad()) {
+                System.out.println("Camion: " + camion.getIdCamion() + " CapacidadUtilizada: " + camion.getCapacidadUtilizada() + " Capacidad: " + camion.getCapacidad());
+            }
             // Incrementar el score de demanda (mayor demanda en posiciones tempranas es mejor)
-            double demanda = contenedor.getDemanda();
+            double demanda = contenedor.getDemandaNormalizada();
             demandaScore += demanda / (i + 1); // Penaliza posiciones tardías
         }
 
@@ -96,27 +99,6 @@ public class ShortestPathMultCamionesProblem extends AbstractIntegerPermutationP
             System.out.println();
         }
     }
-
-//    @Override
-//    public PermutationSolution<Integer> createSolution() {
-//        // Crear una solución vacía utilizando la estructura base del problema
-//        PermutationSolution<Integer> solution = super.createSolution();
-//
-//        // Obtener una lista de contenedores desde las claves del mapa
-//        List<Integer> listaContenedores = new ArrayList<>(contenedores.keySet());
-//
-//        // Mezclar aleatoriamente los contenedores para generar una solución única
-//        Collections.shuffle(listaContenedores);
-//
-//        // Asignar los valores mezclados a las variables de la solución
-//        for (int i = 0; i < cantidadContenedores; i++) {
-//            solution.setVariableValue(i, listaContenedores.get(i));
-//        }
-////        System.out.println("Solution: " + solution);
-//
-//
-//        return solution;
-//    }
 
 @Override
 public PermutationSolution<Integer> createSolution() {
