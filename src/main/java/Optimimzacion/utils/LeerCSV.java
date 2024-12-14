@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class LeerCSV {
     public static Map<Integer, Contenedor> getContenedores(int cantidadContenedores) {
-        String rutaCSV = "src/main/resources/pruebaContenedores.csv";
+        String rutaCSV = "src/main/resources/contenedoresFiltrados.csv";
         // Mapa para almacenar los contenedores
         Map<Integer, Contenedor> contenedores = new HashMap<>();
 
@@ -23,13 +23,15 @@ public class LeerCSV {
             int counter = 0;
             // Leer cada línea del archivo
             while ((linea = reader.readNext()) != null) {
-                int id = Integer.parseInt(linea[0]);
+                double longitud = Double.parseDouble(linea[0]);
                 double latitud = Double.parseDouble(linea[1]);
-                double longitud = Double.parseDouble(linea[2]);
-                int demanda = Integer.parseInt(linea[3]);
+                int demanda = Integer.parseInt(linea[2]);
+                double demanda_normalizada = Double.parseDouble(linea[3]);
+                int id = Integer.parseInt(linea[4]);
+
 
                 // Crear y almacenar el contenedor
-                Contenedor contenedor = new Contenedor(id, latitud, longitud, demanda);
+                Contenedor contenedor = new Contenedor(id, latitud, longitud, demanda, demanda_normalizada);
                 contenedores.put(counter, contenedor);
                 counter++;
                 if (counter == cantidadContenedores) {
