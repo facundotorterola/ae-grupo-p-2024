@@ -18,86 +18,98 @@ import java.util.stream.IntStream;
 
 public class RunShortestPathContenedoresMultProblem {
     public static void main(String[] args) {
-        // Definir constantes
+        // Definir constantes generales
         int CANTIDAD_CAMIONES = 27;
-        int POBLACION_INICIAL = 100; // Población más grande para mayor diversidad
-        int MAX_GENERACIONES = 200;
-        int CANTIDAD_CONTENEDORES = 1000;// Reducido para criterios de convergencia más dinámicos
-        double PROB_CRUCE = 0.9;
-        double PROB_MUTACION = 0.1;
+        int CANTIDAD_CONTENEDORES = 4185;
 
         // Obtener los contenedores desde el CSV
         Map<Integer, Contenedor> contenedores = LeerCSV.getContenedores(CANTIDAD_CONTENEDORES);
         int cantidadContenedores = contenedores.size();
         int cantidadContenedoresPorCamion = cantidadContenedores / CANTIDAD_CAMIONES;
+
+        // Crear camiones con contenedores iniciales
         Map<Integer, Camion> camiones = new HashMap<>();
         for (int i = 0; i < CANTIDAD_CAMIONES; i++) {
             int idContenedor = cantidadContenedoresPorCamion * i;
             camiones.put(i, new Camion(i, contenedores.get(idContenedor)));
-            System.out.println("Camion: " + i + " Contenedor inicial: " + contenedores.get(idContenedor).getId());
         }
 
-        // Problema y operadores genéticos
-        ShortestPathMultCamionesProblem problem = new ShortestPathMultCamionesProblem(cantidadContenedores, camiones, contenedores);
+        // Definir los valores de los parámetros a explorar
+        int[] poblaciones = {50, 100, 200, 500};
+        int[] generaciones = {50, 100, 200, 500};
+        double[] greedyProbabilities = {0.1, 0.3, 0.5, 0.9};
+        double[] probabilidadesCruce = {0.7, 0.8, 0.9, 1.0};
+        double[] probabilidadesMutacion = {0.01, 0.05, 0.1, 0.2};
 
-        var crossover = new PMXCrossover(PROB_CRUCE);
-        PermutationSwapMutation mutation = new PermutationSwapMutation<>(PROB_MUTACION);
+        // Variables para almacenar los mejores resultados globales
+        PermutationSolution<Integer> mejorSolucionGlobal = null;
+        double mejorDistanciaGlobal = Double.MAX_VALUE;
 
-        // Configurar el algoritmo NSGA-II
-        var algorithm = new NSGAIIBuilder<>(problem, crossover, mutation)
-                .setPopulationSize(POBLACION_INICIAL)
-                .setMaxIterations(MAX_GENERACIONES)
-//                .setEvaluator(new MultithreadedSolutionListEvaluator(2, problem)) // Paralelización
-                .build();
+        // Explorar todas las combinaciones de parámetros
+        for (int poblacion : poblaciones) {
+            for (int generacion : generaciones) {
+                for (double greedy : greedyProbabilities) {
+                    for (double cruce : probabilidadesCruce) {
+                        for (double mutacion : probabilidadesMutacion) {
+                            System.out.println("Ejecutando con parámetros:");
+                            System.out.println("Población: " + poblacion);
+                            System.out.println("Generaciones: " + generacion);
+                            System.out.println("Greedy: " + greedy);
+                            System.out.println("Cruce: " + cruce);
+                            System.out.println("Mutación: " + mutacion);
 
-        // Ejecutar el algoritmo
-        new AlgorithmRunner.Executor(algorithm).execute();
+                            // Configurar el problema
+                            ShortestPathMultCamionesProblem problem = new ShortestPathMultCamionesProblem(camiones, contenedores, greedy);
 
+                            // Configurar operadores genéticos
+                            var crossover = new PMXCrossover(cruce);
+                            PermutationSwapMutation mutation = new PermutationSwapMutation<>(mutacion);
 
-//        for (int generation = 0; generation < algorithm.getPopulation().size(); generation++) {
-//            // Log el fitness promedio, mejor fitness, etc.
-////            System.out.println("Generation " + generation + " Best fitness: " + algorithm.getPopulation().get(generation).getObjective(0));
-//        }
-        // Mostrar resultados
-        List<PermutationSolution<Integer>> population = (List<PermutationSolution<Integer>>) algorithm.getResult();
-        PermutationSolution<Integer> bestSolution = population.stream()
-                .min(Comparator.comparingDouble(s -> s.getObjective(0)))
-                .orElseThrow();
+                            // Configurar el algoritmo NSGA-II
+                            var algorithm = new NSGAIIBuilder<>(problem, crossover, mutation)
+                                    .setPopulationSize(poblacion)
+                                    .setMaxIterations(generacion)
+                                    .build();
 
-        System.out.println("====================================");
-        System.out.println("Mejor Solución: [ ");
-        Set<Integer> contenedoresVisitados = new HashSet<>();
-        for (Camion camion : camiones.values()) {
-            contenedoresVisitados.add(camion.getContenedorActual().getId());
-        }
-        for (int i = 0; i < bestSolution.getNumberOfVariables(); i++) {
-            Camion camion = camiones.get(i % camiones.size());
-            Contenedor contenedor = contenedores.get(bestSolution.getVariableValue(i));
-            System.out.println("Camion: " + camion.getIdCamion());
-            System.out.println("Contenedor: " + contenedor.getId());
-            if (!contenedoresVisitados.contains(contenedor.getId())) {
-                camion.getContenedores().add(contenedor);
-                camion.setContenedorActual(contenedor);
-                contenedoresVisitados.add(contenedor.getId());
-            } else {
-                System.out.println("Contenedor ya visitado");
+                            // Ejecutar el algoritmo
+                            new AlgorithmRunner.Executor(algorithm).execute();
+
+                            // Obtener los resultados de esta ejecución
+                            List<PermutationSolution<Integer>> population = (List<PermutationSolution<Integer>>) algorithm.getResult();
+                            PermutationSolution<Integer> mejorSolucionParametro = population.stream()
+                                    .min(Comparator.comparingDouble(s -> s.getObjective(0)))
+                                    .orElseThrow();
+
+                            double distanciaMejorSolucion = mejorSolucionParametro.getObjective(0);
+
+                            // Imprimir los resultados de la mejor solución para esta configuración
+                            System.out.println("Mejor Solución para esta configuración:");
+                            for (int i = 0; i < mejorSolucionParametro.getNumberOfVariables(); i++) {
+                                System.out.print(mejorSolucionParametro.getVariableValue(i) + " -> ");
+                            }
+                            System.out.println("\nDistancia Total: " + distanciaMejorSolucion);
+                            System.out.println("------------------------------------");
+
+                            // Actualizar los mejores resultados globales si se encuentra una mejor solución
+                            if (distanciaMejorSolucion < mejorDistanciaGlobal) {
+                                mejorDistanciaGlobal = distanciaMejorSolucion;
+                                mejorSolucionGlobal = mejorSolucionParametro;
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        // Mostrar contenedores por camión
-        System.out.println("==============================");
-        System.out.println(bestSolution);
-        System.out.println("Contenedores por Camión: ");
-        for (int i = 0; i < camiones.size(); i++) {
-            Camion camion = camiones.get(i);
-            System.out.println("Camion: " + camion.getIdCamion());
-            System.out.print("Contenedores: ");
-            camion.getContenedores().forEach(contenedor -> System.out.print(contenedor.getId() + " -> "));
-            System.out.println();
+        // Mostrar los mejores resultados globales al final
+        System.out.println("====================================");
+        System.out.println("Mejor Solución Global:");
+        if (mejorSolucionGlobal != null) {
+            for (int i = 0; i < mejorSolucionGlobal.getNumberOfVariables(); i++) {
+                System.out.print(mejorSolucionGlobal.getVariableValue(i) + " -> ");
+            }
+            System.out.println("\nDistancia Total: " + mejorDistanciaGlobal);
         }
-        System.out.println("]");
-
-        System.out.println("Distancia Total: " + bestSolution.getObjective(0));
         System.out.println("====================================");
     }
 }

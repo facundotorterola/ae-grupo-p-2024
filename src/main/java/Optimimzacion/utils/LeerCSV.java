@@ -25,13 +25,13 @@ public class LeerCSV {
             while ((linea = reader.readNext()) != null) {
                 double longitud = Double.parseDouble(linea[0]);
                 double latitud = Double.parseDouble(linea[1]);
-                int demanda = Integer.parseInt(linea[2]);
+                int demanda = (int) Double.parseDouble(linea[2]);
                 double demanda_normalizada = Double.parseDouble(linea[3]);
                 int id = Integer.parseInt(linea[4]);
 
 
                 // Crear y almacenar el contenedor
-                Contenedor contenedor = new Contenedor(id, latitud, longitud, demanda, demanda_normalizada);
+                Contenedor contenedor = new Contenedor(counter, latitud, longitud, demanda, demanda_normalizada);
                 contenedores.put(counter, contenedor);
                 counter++;
                 if (counter == cantidadContenedores) {
