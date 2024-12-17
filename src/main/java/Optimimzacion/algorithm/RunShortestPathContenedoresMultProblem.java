@@ -2,12 +2,22 @@ package Optimimzacion.algorithm;
 
 import Optimimzacion.modelo.Camion;
 import Optimimzacion.modelo.Contenedor;
+import Optimimzacion.modelo.Deposito;
+import Optimimzacion.modelo.Posicion;
+import Optimimzacion.problem.ShortestPathMultCamionesContenedoresProblem;
 import Optimimzacion.problem.ShortestPathMultCamionesProblem;
 import Optimimzacion.utils.LeerCSV;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
+import org.uma.jmetal.operator.CrossoverOperator;
+import org.uma.jmetal.operator.MutationOperator;
+import org.uma.jmetal.operator.impl.crossover.IntegerSBXCrossover;
 import org.uma.jmetal.operator.impl.crossover.PMXCrossover;
+import org.uma.jmetal.operator.impl.crossover.SinglePointCrossover;
+import org.uma.jmetal.operator.impl.mutation.IntegerPolynomialMutation;
 import org.uma.jmetal.operator.impl.mutation.PermutationSwapMutation;
+import org.uma.jmetal.problem.Problem;
+import org.uma.jmetal.solution.IntegerSolution;
 import org.uma.jmetal.solution.PermutationSolution;
 import org.uma.jmetal.util.AlgorithmRunner;
 import org.uma.jmetal.util.evaluator.impl.MultithreadedSolutionListEvaluator;
@@ -35,17 +45,26 @@ public class RunShortestPathContenedoresMultProblem {
 
         // Crear camiones con contenedores iniciales
         Map<Integer, Camion> camiones = new HashMap<>();
+        Deposito deposito = new Deposito(1, new Posicion(-34.849372, -56.095847));
         for (int i = 0; i < CANTIDAD_CAMIONES; i++) {
-            int idContenedor = cantidadContenedoresPorCamion * i;
-            camiones.put(i, new Camion(i, contenedores.get(idContenedor)));
+//            int idContenedor = cantidadContenedoresPorCamion * i;
+            camiones.put(i, new Camion(i, deposito.getPosicion()));
         }
 
         // Definir los valores de los parámetros a explorar
-        int[] poblaciones = {50, 100, 200, 500};
-        int[] generaciones = {50, 100, 200, 500};
-        double[] greedyProbabilities = {0.1, 0.3, 0.5, 0.9};
-        double[] probabilidadesCruce = {0.7, 0.8, 0.9, 1.0};
-        double[] probabilidadesMutacion = {0.01, 0.05, 0.1, 0.2};
+//        int[] poblaciones = {50, 100, 200, 500};
+//        int[] generaciones = {50, 100, 200, 500};
+//        double[] greedyProbabilities = {0.1, 0.3, 0.5, 0.9};
+//        double[] probabilidadesCruce = {0.7, 0.8, 0.9, 1.0};
+//        double[] probabilidadesMutacion = {0.01, 0.05, 0.1, 0.2};
+
+
+        int[] poblaciones = {50};
+        int[] generaciones = {50};
+        double[] greedyProbabilities = {0.1};
+        double[] probabilidadesCruce = {0.7};
+        double[] probabilidadesMutacion = {0.01};
+
 
         // Archivo para guardar los resultados
         FileWriter csvWriter = new FileWriter("resultados.csv");
@@ -66,43 +85,58 @@ public class RunShortestPathContenedoresMultProblem {
 
 
                             // Configurar el problema
-                            ShortestPathMultCamionesProblem problem = new ShortestPathMultCamionesProblem(camiones, contenedores, greedy);
+                            ShortestPathMultCamionesContenedoresProblem problem =
+                                    new ShortestPathMultCamionesContenedoresProblem(camiones, contenedores, greedy);
 
-                            // Configurar operadores genéticos
-                            var crossover = new PMXCrossover(cruce);
-                            PermutationSwapMutation mutationOperator = new PermutationSwapMutation<>(mutacion);
+// Configurar operadores genéticos
+                            CrossoverOperator<IntegerSolution> crossoverOperator = new IntegerSBXCrossover(cruce, 20*cruce);
 
-                            // Configurar el algoritmo NSGA-II
-                            var algorithm = new NSGAIIBuilder<>(problem, crossover, mutationOperator)
+                            MutationOperator<IntegerSolution> mutationOperator =
+                                    new IntegerPolynomialMutation(mutacion, 1.0 / problem.getNumberOfVariables());
+
+// Configurar el algoritmo NSGA-II
+                            var algorithm = new NSGAIIBuilder<>(problem, crossoverOperator, mutationOperator)
                                     .setPopulationSize(poblacion)
                                     .setMaxIterations(generacion)
                                     .build();
 
-                            // Ejecutar el algoritmo
+// Ejecutar el algoritmo
                             new AlgorithmRunner.Executor(algorithm).execute();
 
                             // Obtener los resultados de esta ejecución
-                            List<PermutationSolution<Integer>> population = (List<PermutationSolution<Integer>>) algorithm.getResult();
-                            PermutationSolution<Integer> mejorSolucionParametro = population.stream()
+                            List<IntegerSolution> population = algorithm.getResult();
+
+                            IntegerSolution mejorSolucionParametro = population.stream()
                                     .min(Comparator.comparingDouble(s -> s.getObjective(0)))
                                     .orElseThrow();
-
-                            double distanciaMejorSolucion = mejorSolucionParametro.getObjective(0);
                             System.out.println("Población: " + poblacion + ", Generaciones: " + generacion +
-                                    ", Greedy: " + greedy + ", Cruce: " + cruce + ", Mutación: " + mutacion  +", Fitness: " + distanciaMejorSolucion);
+                                    ", Greedy: " + greedy + ", Cruce: " + cruce + ", Mutación: " + mutacion + ", Fitness: " + mejorSolucionParametro.getObjective(0));
                             System.out.println("====================================");
-                            System.out.println(mejorSolucionParametro);
-                            System.out.println("====================================");
+
+//                            for (int i = 0; i < cantidadContenedores; i++) {
+//                                System.out.println("Contenedor " + i + " asignado al camión " + mejorSolucionParametro.getVariableValue(i));
+//                            }
+//                            (List<IntegerSolution>) population =  algorithm.getResult();
+//                            PermutationSolution<Integer> mejorSolucionParametro = population.stream()
+//                                    .min(Comparator.comparingDouble(s -> s.getObjective(0)))
+//                                    .orElseThrow();
+
+//                            double distanciaMejorSolucion = mejorSolucionParametro.getObjective(0);
+//                            System.out.println("Población: " + poblacion + ", Generaciones: " + generacion +
+//                                    ", Greedy: " + greedy + ", Cruce: " + cruce + ", Mutación: " + mutacion  +", Fitness: " + distanciaMejorSolucion);
+//                            System.out.println("====================================");
+//                            System.out.println(mejorSolucionParametro);
+//                            System.out.println("====================================");
 
                             // Guardar los resultados en el archivo CSV
-                            synchronized (csvWriter) {
-                                try {
-                                    csvWriter.append(String.format("%d,%d,%.2f,%.2f,%.2f,%.2f\n",
-                                            poblacion, generacion, greedy, cruce, mutacion, distanciaMejorSolucion));
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
+//                            synchronized (csvWriter) {
+//                                try {
+//                                    csvWriter.append(String.format("%d,%d,%.2f,%.2f,%.2f,%.2f\n",
+//                                            poblacion, generacion, greedy, cruce, mutacion, distanciaMejorSolucion));
+//                                } catch (IOException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
 
                             System.out.println("Combinación " + id + " completada.");
                         });

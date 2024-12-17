@@ -1,6 +1,7 @@
 package Optimimzacion.utils;
 
 import Optimimzacion.modelo.Contenedor;
+import Optimimzacion.modelo.Posicion;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -31,7 +32,7 @@ public class LeerCSV {
 
 
                 // Crear y almacenar el contenedor
-                Contenedor contenedor = new Contenedor(counter, latitud, longitud, demanda, demanda_normalizada);
+                Contenedor contenedor = new Contenedor(counter, new Posicion(latitud, longitud), demanda, demanda_normalizada);
                 contenedores.put(counter, contenedor);
                 counter++;
                 if (counter == cantidadContenedores) {

@@ -5,34 +5,30 @@ import java.util.List;
 
 public class Camion {
     private int idCamion;
-    private Contenedor contenedorActual;
+    private Posicion posicionActual;
     private List<Contenedor> contenedores;
     private final double capacidad;
     private double capacidadUtilizada;
 
-    public Camion(int idCamion, Contenedor contenedorActual) {
+    public Camion(int idCamion, Posicion posicionActual) {
         this.idCamion = idCamion;
-        this.contenedorActual = contenedorActual;
+        this.posicionActual = posicionActual;
         this.contenedores = new ArrayList<>();
-        this.contenedores.add(contenedorActual);
-        // Ubicacion inicial -34.849372, -56.095847
+//        this.contenedores.add(contenedorActual);
+//        // Ubicacion inicial -34.849372, -56.095847
         this.capacidad = 10 *1000; // 10 toneladas
-        this.capacidadUtilizada = contenedorActual.getDemanda();
+        this.capacidadUtilizada = 0;
     }
 
     public int getIdCamion() {
         return this.idCamion;
     }
-    public Contenedor getContenedorActual() {
-        return this.contenedorActual;
-    }
+
     public List<Contenedor> getContenedores() {
         return this.contenedores;
     }
 
-    public void setContenedorActual(Contenedor contenedorABuscar) {
-        this.contenedorActual = contenedorABuscar;
-    }
+
 
     public double getCapacidad() {
         return capacidad;
@@ -45,5 +41,26 @@ public class Camion {
 
     public void setCapacidadUtilizada(double capacidadUtilizada) {
         this.capacidadUtilizada = capacidadUtilizada;
+    }
+
+    public Posicion getPosicionActual() {
+        return posicionActual;
+    }
+
+    public void setPosicionActual(Posicion posicionActual) {
+        this.posicionActual = posicionActual;
+    }
+
+    public void agregarContenedor(Contenedor contenedor) {
+        this.contenedores.add(contenedor);
+        this.capacidadUtilizada += contenedor.getDemanda();
+        if (this.capacidadUtilizada > this.capacidad) {
+            System.out.println("Va el camion " + this.getIdCamion()+ " al deposito");
+            this.capacidadUtilizada = 0;
+            this.posicionActual = new Posicion(-34.849372, -56.095847);
+        }else {
+            this.posicionActual = contenedor.getPosicion();
+        }
+
     }
 }
