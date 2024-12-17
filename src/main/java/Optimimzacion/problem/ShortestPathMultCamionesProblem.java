@@ -35,28 +35,40 @@ public class ShortestPathMultCamionesProblem extends AbstractIntegerPermutationP
         double demandaScore = 0;
         double alpha = 1.0/(camiones.size());
         double beta = 1.0 / camiones.size();
-        for (int i = 0; i < solution.getNumberOfVariables(); i++) {
-            System.out.println("Variable: " + solution.getVariableValue(i));
-        }
 
         // Crear copias temporales de los camiones
-        Map<Integer,Camion> camionesTemporales = crearCopiasCamionesMap();
+        List<Camion> camionesTemporales = crearCopiasCamiones();
 
-
+        // Crear una lista temporal de contenedores basada en la solución
+        List<Contenedor> contenedoresOrdenados = new ArrayList<>();
         for (int i = 0; i < solution.getNumberOfVariables(); i++) {
-            Contenedor contenedor = contenedores.get(i);
-            Camion camion = camionesTemporales.get(solution.getVariableValue(i));
+            contenedoresOrdenados.add(contenedores.get(solution.getVariableValue(i)));
+        }
+
+        // Calcular la distancia total y asignar los contenedores
+        for (int i = 0; i < contenedoresOrdenados.size(); i++) {
+            Contenedor contenedor = contenedoresOrdenados.get(i);
+            Camion camion = camionesTemporales.get(i % camiones.size());
+
+            // Calcular la distancia desde el contenedor actual al nuevo contenedor
             double distancia = camion.getPosicionActual().calcularDistancia(contenedor.getPosicion());
             totalDistance += beta * distancia;
-            camion.agregarContenedor(contenedor);
-            double demanda = contenedor.getDemandaNormalizada();
-            System.out.println("Camion: " + camion.getIdCamion() + " Contenedor: " + contenedor.getId() + " Distancia: " + distancia + " Demanda: " + demanda);
 
+            // Actualizar el estado del camión
+            camion.agregarContenedor(contenedor);
+            // Incrementar el score de demanda (mayor demanda en posiciones tempranas es mejor)
+            double demanda = contenedor.getDemandaNormalizada();
             demandaScore += demanda / (i + 1); // Penaliza posiciones tardías
         }
 
-        double totalCost = totalDistance - alpha * demandaScore;
+        // Ajustar el costo total con la ponderación de la demanda
+        double totalCost =   totalDistance - alpha * demandaScore;
+
+        // Asignar el costo total como el objetivo de la solución
         solution.setObjective(0, totalCost);
+
+        // Loggear las asignaciones de contenedores a los camiones
+//        loggearAsignaciones (camionesTemporales);
     }
 
 
@@ -92,35 +104,45 @@ public class ShortestPathMultCamionesProblem extends AbstractIntegerPermutationP
         }
     }
 
-@Override
-public PermutationSolution<Integer> createSolution() {
-    // Crear una solución vacía
-    PermutationSolution<Integer> solution = super.createSolution();
+    @Override
+    public PermutationSolution<Integer> createSolution() {
+        // Crear una solución vacía
+        PermutationSolution<Integer> solution = super.createSolution();
 
-    // Generar la solución contenedor por contenedor
-    for (int i = 0; i < solution.getNumberOfVariables(); i++) {
-        // Seleccionar el camión actual basado en el índice
-        Contenedor contenedor = contenedores.get(i);
+        // Crear una lista de contenedores sin visitar
+        List<Contenedor> contenedoresSinVisitar = new ArrayList<>(contenedores.values());
 
-        double randomValue = Math.random();
-//        Contenedor contenedorSeleccionado;
-        Camion camionSeleccionado;
-        if (randomValue < greedyProbability) {
-            // Estrategia greedy: Seleccionar el mejor contenedor
-            camionSeleccionado = obtenerMejorCamionGreedy(contenedor);
-        } else {
-            // Estrategia aleatoria: Seleccionar un contenedor aleatorio
-            camionSeleccionado = obtenerCamionAleatorio();
+        // Crear copias temporales de los camiones para manipular su estado
+        List<Camion> camionesTemporales = crearCopiasCamiones();
+
+        // Generar la solución contenedor por contenedor
+        for (int i = 0; i < solution.getNumberOfVariables(); i++) {
+            // Seleccionar el camión actual basado en el índice
+            Camion camionActual = camionesTemporales.get(i % camionesTemporales.size());
+
+            // Tomar decisión: greedy o aleatorio
+            double randomValue = Math.random();
+            Contenedor contenedorSeleccionado;
+            if (randomValue < greedyProbability) {
+                // Estrategia greedy: Seleccionar el mejor contenedor
+                contenedorSeleccionado = obtenerMejorContenedorGreedy(camionActual, contenedoresSinVisitar);
+            } else {
+                // Estrategia aleatoria: Seleccionar un contenedor aleatorio
+                contenedorSeleccionado = obtenerContenedorAleatorio(contenedoresSinVisitar);
+            }
+
+            // Asignar el contenedor a la solución
+            solution.setVariableValue(i, contenedorSeleccionado.getId());
+
+            // Actualizar el estado del camión
+            camionActual.agregarContenedor(contenedorSeleccionado);
+
+            // Eliminar el contenedor de los sin visitar
+            contenedoresSinVisitar.remove(contenedorSeleccionado);
         }
 
-        // Asignar el contenedor a la solución
-        solution.setVariableValue(i, camionSeleccionado.getIdCamion());
-        camionSeleccionado.agregarContenedor(contenedor);
-
+        return solution;
     }
-
-    return solution;
-}
 
 
     // Método para seleccionar el mejor contenedor basado en distancia o demanda
@@ -209,6 +231,25 @@ public PermutationSolution<Integer> createSolution() {
                 ))
                 .orElseThrow();
     }
+
+
+    private Contenedor obtenerMejorContenedorGreedy(Camion camion, List<Contenedor> contenedoresSinVisitar) {
+        double decisionThreshold = 0.5; // Probabilidad de seleccionar por demanda en lugar de distancia
+        double randomValue = Math.random();
+
+        if (randomValue < decisionThreshold) {
+            // Seleccionar el contenedor con mayor demanda
+            return contenedoresSinVisitar.stream()
+                    .max(Comparator.comparingDouble(Contenedor::getDemandaNormalizada))
+                    .orElseThrow(() -> new RuntimeException("No hay contenedores disponibles para seleccionar."));
+        } else {
+            // Seleccionar el contenedor más cercano (por distancia)
+            return contenedoresSinVisitar.stream()
+                    .min(Comparator.comparingDouble(c -> camion.getPosicionActual().calcularDistancia(c.getPosicion())))
+                    .orElseThrow(() -> new RuntimeException("No hay contenedores disponibles para seleccionar."));
+        }
+    }
+
 
 
 }

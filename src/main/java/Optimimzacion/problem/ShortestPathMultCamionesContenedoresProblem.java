@@ -37,8 +37,7 @@ public class ShortestPathMultCamionesContenedoresProblem extends AbstractInteger
     public void evaluate(IntegerSolution solution) {
         double totalCost = 0.0;
         double demandaScore = 0.0; // Para evaluar la prioridad de demandas tempranas
-        double alpha = 1; // Coeficiente que ajusta la importancia de la demanda
-
+        double alpha = (1.0 / cantidadCamiones); // Coeficiente que ajusta la importancia de la demanda
         // Crear una copia de los camiones
         Map<Integer, Camion> camionesTemporales = crearCopiasCamionesMap();
 
@@ -56,7 +55,7 @@ public class ShortestPathMultCamionesContenedoresProblem extends AbstractInteger
 
             // Aumentar el score para demandas atendidas tempranamente
             double demanda = contenedor.getDemandaNormalizada();
-            demandaScore += demanda;
+            demandaScore += demanda; // Penalizar posiciones tardías
         }
 
         // Restar el score de demanda ponderado por alpha

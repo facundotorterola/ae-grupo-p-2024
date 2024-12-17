@@ -55,7 +55,6 @@ public class Camion {
         this.contenedores.add(contenedor);
         this.capacidadUtilizada += contenedor.getDemanda();
         if (this.capacidadUtilizada > this.capacidad) {
-            System.out.println("Va el camion " + this.getIdCamion()+ " al deposito");
             this.capacidadUtilizada = 0;
             this.posicionActual = new Posicion(-34.849372, -56.095847);
         }else {
