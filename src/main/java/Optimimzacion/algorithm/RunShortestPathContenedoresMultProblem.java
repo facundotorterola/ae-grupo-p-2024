@@ -54,7 +54,7 @@ public class RunShortestPathContenedoresMultProblem {
         // Definir los valores de los parámetros a explorar
         int[] poblaciones = {10, 20, 100, 200};
         int[] generaciones = {10, 20, 100, 200};
-        double[] greedyProbabilities = {0.1, 0.3, 0.5, 0.9};
+        double[] greedyProbabilities = {1};
         double[] probabilidadesCruce = {0.7, 0.8, 0.9, 1.0};
         double[] probabilidadesMutacion = {0.01, 0.05, 0.1, 0.2};
 
